@@ -23,8 +23,8 @@ function getNLUInstance() {
     return naturalLanguageUnderstanding;
 }
 
-const analyzeParams = {
-    'url': 'www.ibm.com',
+let analyzeParamsForUrl = {
+    'url':'',
     'features': {
         'entities': {
         'emotion': true,
@@ -34,13 +34,25 @@ const analyzeParams = {
     },
 };
 
+let analyzeParamsForText = {
+    'text':'',
+     'features': {
+        'keywords': {
+        'emotion': true,
+        'sentiment': true,
+         }
+    }
+};
+
 app.get("/",(req,res)=>{
     res.render('index.html'); 
 });
 
 app.get("/url/emotion", (req,res) => {
    let naturalLanguageUnderstanding = getNLUInstance();
-   naturalLanguageUnderstanding.analyze(analyzeParams)
+   const url = (req.query.url).trim();
+   analyzeParamsForUrl['url'] = url;
+   naturalLanguageUnderstanding.analyze(analyzeParamsForUrl)
     .then(analysisResults => {
         return res.send(analysisResults.result.entities[0].emotion);
         })
@@ -51,7 +63,9 @@ app.get("/url/emotion", (req,res) => {
 
 app.get("/url/sentiment", (req,res) => {
     let naturalLanguageUnderstanding = getNLUInstance();
-    naturalLanguageUnderstanding.analyze(analyzeParams)
+    const url = (req.query.url).trim();
+    analyzeParamsForUrl['url'] = url;
+    naturalLanguageUnderstanding.analyze(analyzeParamsForUrl)
         .then(analysisResults => {
             return res.send(analysisResults.result.entities[0].sentiment.label);
             })
@@ -62,9 +76,10 @@ app.get("/url/sentiment", (req,res) => {
 
 app.get("/text/emotion", (req,res) => {
    let naturalLanguageUnderstanding = getNLUInstance();
-   naturalLanguageUnderstanding.analyze(analyzeParams)
+   analyzeParamsForText['text'] = req.query.text;
+   naturalLanguageUnderstanding.analyze(analyzeParamsForText)
     .then(analysisResults => {
-        return res.send(analysisResults.result.entities[0].emotion);
+        return res.send(analysisResults.result.keywords[0].emotion);
         })
     .catch(err => {
             console.log('error:', err);
@@ -73,9 +88,10 @@ app.get("/text/emotion", (req,res) => {
 
 app.get("/text/sentiment", (req,res) => {
     let naturalLanguageUnderstanding = getNLUInstance();
-    naturalLanguageUnderstanding.analyze(analyzeParams)
+    analyzeParamsForText['text'] = req.query.text;
+    naturalLanguageUnderstanding.analyze(analyzeParamsForText)
         .then(analysisResults => {
-            return res.send(analysisResults.result.entities[0].sentiment.label);
+            return res.send(analysisResults.result.keywords[0].sentiment.label);
             })
         .catch(err => {
                 console.log('error:', err);
